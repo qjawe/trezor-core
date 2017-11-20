@@ -4,7 +4,7 @@ from trezor.ui import display
 from trezor.ui.button import Button, BTN_CLICKED
 
 
-def cell_area(i, n_x=3, n_y=3, start_x=5, start_y=40, end_x=235, end_y=235, spacing=0):
+def cell_area(i, n_x=3, n_y=3, start_x=8, start_y=57, end_x=228, end_y=228, spacing=0):
     w = (end_x - start_x) // n_x
     h = (end_y - start_y) // n_y
     x = (i % n_x) * w
@@ -41,30 +41,41 @@ class KeyboardMultiTap(ui.Widget):
         self.pending_index = 0
 
         self.key_buttons = key_buttons()
-        self.sugg_button = Button((0, 0, 240 - 35, 40), '')
-        self.bs_button = Button((240 - 46, 7, 40, 35),
-                                res.load('trezor/res/cross2.toig'),
+        self.sugg_button = Button((0, 0, 240 - 63, 51), '')
+        self.bs_button = Button((240 - 63, 6, 51, 51),
+                                res.load('trezor/res/left.toig'),
                                 normal_style=ui.BTN_CLEAR,
                                 active_style=ui.BTN_CLEAR_ACTIVE)
 
     def render(self):
 
         # clear canvas under input line
-        display.bar(0, 0, 205, 40, ui.BG)
-
+        display.bar(0, 0, 240, 57, ui.BG)
+        offset_x = 26
         # input line
         if self.content:
             content_width = display.text_width(self.content, ui.BOLD)
-            display.bar_radius(10, 10, 190, 28, ui.BLACKISH, ui.BG, ui.RADIUS)
-            display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BLACKISH)
+
+            # validate input - check if correct bip match
+            val = bip39.find_word(self.content)
+            if val == self.content:
+                offset_x = 42
+                display.bar_radius(12, 10, 190, 43, ui.GREEN, ui.BG, ui.RADIUS)
+                type_icon = res.load('trezor/res/confirm2.toig')
+                display.icon(20, 23, type_icon, ui.WHITE, ui.GREEN)
+                display.text(offset_x, 38, self.content, ui.BOLD, ui.WHITE, ui.GREEN)
+            else:
+                display.bar_radius(12, 10, 190, 43, ui.BLACKISH, ui.BG, ui.RADIUS)
+                display.text(offset_x, 38, self.content, ui.BOLD, ui.FG, ui.BLACKISH)
+
             # auto-suggest
             if self.sugg_word is not None:
                 sugg_rest = self.sugg_word[len(self.content):]
-                sugg_x = 20 + content_width
-                display.text(sugg_x, 30, sugg_rest, ui.BOLD, ui.GREY, ui.BLACKISH)
+                sugg_x = offset_x + content_width
+                display.text(sugg_x, 38, sugg_rest, ui.BOLD, ui.GREY, ui.BLACKISH)
         else:
             content_width = display.text_width(self.prompt, ui.BOLD)
-            display.text(20, 30, self.prompt, ui.BOLD, ui.GREY, ui.BG)
+            display.text(20, 38, self.prompt, ui.BOLD, ui.GREY, ui.BG)
 
         # render backspace button
         if self.content:
@@ -76,8 +87,8 @@ class KeyboardMultiTap(ui.Widget):
         # pending marker
         if self.pending_button is not None:
             pending_width = display.text_width(self.content[-1:], ui.BOLD)
-            pending_x = 20 + content_width - pending_width
-            display.bar(pending_x, 33, pending_width + 2, 3, ui.FG)
+            pending_x = offset_x + content_width - pending_width
+            display.bar(pending_x, 42, pending_width + 2, 3, ui.FG)
 
         # key buttons
         for btn in self.key_buttons:
