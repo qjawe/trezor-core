@@ -103,17 +103,20 @@ class KeyboardMultiTap(ui.Widget):
             self._update_buttons()
             return
         if self.sugg_button.touch(event, pos) == BTN_CLICKED:
-            if self.content == bip39.find_word(self.content):
-                result = self.content
-                self.content = ''
-            elif self.sugg_word is not None:
-                result = None
-                self.content = self.sugg_word
-            self.pending_button = None
-            self.pending_index = 0
-            self._update_suggestion()
-            self._update_buttons()
-            return result
+            if self.content:
+                if self.content == bip39.find_word(self.content):
+                    result = self.content
+                    self.content = ''
+                elif self.sugg_word is not None:
+                    result = None
+                    self.content = self.sugg_word
+                self.pending_button = None
+                self.pending_index = 0
+                self._update_suggestion()
+                self._update_buttons()
+                return result
+            else:
+                return None
         for btn in self.key_buttons:
             if btn.touch(event, pos) == BTN_CLICKED:
                 if self.pending_button is btn:
